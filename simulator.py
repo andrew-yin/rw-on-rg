@@ -51,8 +51,7 @@ class Simulator:
                     sum_cur.append(sum_cur[i])
                 else:
                     sum_cur.append(sum_cur[i]+1)
-
-            # proportion_cur = [len(set(random_walker.path[:i]))/n for i in range(1,len(random_walker.path)+1)]
+                    
 
             proportion_sum = proportion_sum + np.array(sum_cur)/n
 
