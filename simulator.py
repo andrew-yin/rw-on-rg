@@ -29,3 +29,6 @@ class Simulator:
         plt.xlabel("# of Steps")
         plt.ylabel("Proportion of visited vertices")
         plt.show()
+
+        
+        print('hi')
