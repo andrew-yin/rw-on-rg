@@ -45,16 +45,16 @@ class Simulator:
             for i in range(steps):
                 random_walker.move_dict()
 
-            proportion_cur = [1]
+            sum_cur = [1]
             for i in range(steps):
                 if random_walker.path[i+1] in random_walker.path[0:i+1]:
-                    proportion_cur.append(proportion_cur[i])
+                    sum_cur.append(sum_cur[i])
                 else:
-                    proportion_cur.append(proportion_cur[i]+1)
+                    sum_cur.append(sum_cur[i]+1)
 
             # proportion_cur = [len(set(random_walker.path[:i]))/n for i in range(1,len(random_walker.path)+1)]
 
-            proportion_sum = proportion_sum + np.array(proportion_cur)/n
+            proportion_sum = proportion_sum + np.array(sum_cur)/n
 
         proportion_avg = proportion_sum / k
         print(proportion_avg)
@@ -62,7 +62,7 @@ class Simulator:
         plt.title("Proportion of visited vertices vs. # of Steps")
         plt.xlabel("# of Steps")
         plt.ylabel("Proportion of visited vertices")
-        plt.show()  
+        plt.show()   
         
 
         
