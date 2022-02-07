@@ -56,7 +56,7 @@ class Simulator:
 
             proportion_sum = proportion_sum + np.array(proportion_cur)/n
 
-        proportion_avg = proportion_sum / n
+        proportion_avg = proportion_sum / k
         print(proportion_avg)
         plt.plot(np.arange(0, len(proportion_avg), step=1), proportion_avg)
         plt.title("Proportion of visited vertices vs. # of Steps")
