@@ -16,22 +16,25 @@ class Simulator:
         n = len(graph)
 
         walk = [walker.cur]
-        proportions =[1/n] 
+        proportions = np.ones(steps+1) 
 
         # Simulate walk
         visited = set(walk)
         for i in range(1, steps+1):
             walker.move()
-            visited.add(walker.cur)
             walk.append(walker.cur)
-            proportions.append(len(visited)/n)
+            if walker.cur not in visited:
+                visited.add(walker.cur)
+                proportions[i] = proportions[i-1]+1
+            else:
+                proportions[i] = proportions[i-1]
 
         # Generate results
         results = {
             'walk' : walk,
         }
         if calculate_prop:
-            results['proportions'] = proportions
+            results['proportions'] = proportions/n
         return results
         
     @staticmethod

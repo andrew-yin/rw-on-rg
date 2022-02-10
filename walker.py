@@ -6,9 +6,11 @@ class Walker:
         self.strategy = strategy
         self.graph = graph
         self.cur = None
+        self.neighbors = {}
 
     def load_graph(self, graph):
         self.graph = graph
+        self.neighbors = {node: list(neighbors.keys()) for node, neighbors in self.graph.adj.items()}
         if self.strategy == "random":
             self.cur = random.choice(list(self.graph))
 
@@ -17,10 +19,8 @@ class Walker:
 
     def move(self):
         if self.strategy == "random":
-            neighbors = [i[0] for i in self.graph.adj[self.cur].items()]
-            if len(neighbors) != 0:
-                self.cur = random.choice(neighbors)
-
+            if len(self.neighbors[self.cur]) != 0:
+                self.cur = random.choice(self.neighbors[self.cur])
     
     def move_dict(self):
         if self.strategy == "random":
