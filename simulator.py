@@ -10,58 +10,48 @@ class Simulator:
         pass
 
     @staticmethod
-    def plot_rw_visited_prop(n, p, steps):
-        graph = Graph.get_er_random_graph(n, p)
-        start = random.choice(list(graph.nodes))
-        random_walker = Walker(strategy="random", graph=graph, start=start)
+    def simulate_walk(graph, walker, steps, calculate_prop=True):
+        walker.reset()
+        walker.load_graph(graph)
+        n = len(graph)
 
-        walk = [start]
-        for i in range(steps):
-            random_walker.move()
-            walk.append(random_walker.get_current_node())
+        walk = [walker.cur]
+        proportions =[1/n] 
 
-        proportion = []
-        for i in range(1, len(walk)+1):
-            proportion.append(len(set(walk[:i]))/n)
+        # Simulate walk
+        visited = set(walk)
+        for i in range(1, steps+1):
+            walker.move()
+            visited.add(walker.cur)
+            walk.append(walker.cur)
+            proportions.append(len(visited)/n)
 
-        plt.plot(np.arange(0, len(proportion), step=1), proportion)
-        plt.title("Proportion of visited vertices vs. # of Steps")
-        plt.xlabel("# of Steps")
-        plt.ylabel("Proportion of visited vertices")
-        plt.show()
+        # Generate results
+        results = {
+            'walk' : walk,
+        }
+        if calculate_prop:
+            results['proportions'] = proportions
+        return results
         
-        
-@staticmethod
-    def plot_rw_coverage_multisamples(n,p,steps,k):
-        '''
-        plot the average of each steps
-        '''
-        proportion_sum = np.array(np.zeros(steps+1))
-        for j in range(k):
+    @staticmethod
+    def plot_rw_on_rg_visited_prop(n, p, steps, k=1):
+        """
+        Plot the average proportion of visited vertices at each step 
+        of a random walk on a random graph over k samples
+        """
+        random_walker = Walker(strategy="random")
+        proportion_sum = np.zeros(steps+1)
+        for i in range(k):
             graph = Graph.get_er_random_graph(n, p)           
-            start = random.choice(list(graph.nodes))           
-            random_walker = Walker(strategy="random", graph=graph, start=start)
-            
-            for i in range(steps):
-                random_walker.move_dict()
+            results = Simulator.simulate_walk(graph, random_walker, steps)
 
-            sum_cur = [1]
-            for i in range(steps):
-                if random_walker.path[i+1] in random_walker.path[0:i+1]:
-                    sum_cur.append(sum_cur[i])
-                else:
-                    sum_cur.append(sum_cur[i]+1)
-                    
-
-            proportion_sum = proportion_sum + np.array(sum_cur)/n
-
+            proportion_sum += results['proportions']
         proportion_avg = proportion_sum / k
-        print(proportion_avg)
-        plt.plot(np.arange(0, len(proportion_avg), step=1), proportion_avg)
-        plt.title("Proportion of visited vertices vs. # of Steps")
+
+        plt.plot(np.arange(1, len(proportion_avg)+1, step=1), proportion_avg, label='k = {:d}'.format(k))
+        plt.title("Proportion of Visited Vertices vs. # of Steps")
         plt.xlabel("# of Steps")
         plt.ylabel("Proportion of visited vertices")
+        plt.legend()
         plt.show()   
-        
-
-        

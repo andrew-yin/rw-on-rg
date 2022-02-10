@@ -2,13 +2,18 @@ import random
 
 class Walker:
 
-    def __init__(self, strategy, graph, start):
+    def __init__(self, strategy, graph=None):
         self.strategy = strategy
         self.graph = graph
-        self.start = start
-        self.cur = start
-        self.path = [start]
-        self.neighbors = {node: list(neighbors.keys()) for node, neighbors in self.graph.adj.items()}
+        self.cur = None
+
+    def load_graph(self, graph):
+        self.graph = graph
+        if self.strategy == "random":
+            self.cur = random.choice(list(self.graph))
+
+    def reset(self):
+        self.graph = None
 
     def move(self):
         if self.strategy == "random":
