@@ -10,22 +10,48 @@ class Simulator:
         pass
 
     @staticmethod
-    def plot_rw_visited_prop(n, p, steps):
-        graph = Graph.get_er_random_graph(n, p)
-        start = random.choice(list(graph.nodes))
-        random_walker = Walker(strategy="random", graph=graph, start=start)
+    def simulate_walk(graph, walker, steps, calculate_prop=True):
+        walker.reset()
+        walker.load_graph(graph)
+        n = len(graph)
 
-        walk = [start]
-        for i in range(steps):
-            random_walker.move()
-            walk.append(random_walker.get_current_node())
+        walk = [walker.cur]
+        proportions =[1/n] 
 
-        proportion = []
-        for i in range(1, len(walk)+1):
-            proportion.append(len(set(walk[:i]))/n)
+        # Simulate walk
+        visited = set(walk)
+        for i in range(1, steps+1):
+            walker.move()
+            visited.add(walker.cur)
+            walk.append(walker.cur)
+            proportions.append(len(visited)/n)
 
-        plt.plot(np.arange(0, len(proportion), step=1), proportion)
-        plt.title("Proportion of visited vertices vs. # of Steps")
+        # Generate results
+        results = {
+            'walk' : walk,
+        }
+        if calculate_prop:
+            results['proportions'] = proportions
+        return results
+        
+    @staticmethod
+    def plot_rw_on_rg_visited_prop(n, p, steps, k=1):
+        """
+        Plot the average proportion of visited vertices at each step 
+        of a random walk on a random graph over k samples
+        """
+        random_walker = Walker(strategy="random")
+        proportion_sum = np.zeros(steps+1)
+        for i in range(k):
+            graph = Graph.get_er_random_graph(n, p)           
+            results = Simulator.simulate_walk(graph, random_walker, steps)
+
+            proportion_sum += results['proportions']
+        proportion_avg = proportion_sum / k
+
+        plt.plot(np.arange(1, len(proportion_avg)+1, step=1), proportion_avg, label='k = {:d}'.format(k))
+        plt.title("Proportion of Visited Vertices vs. # of Steps")
         plt.xlabel("# of Steps")
         plt.ylabel("Proportion of visited vertices")
-        plt.show()
+        plt.legend()
+        plt.show()   
