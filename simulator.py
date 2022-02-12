@@ -59,3 +59,36 @@ class Simulator:
         plt.ylabel("Proportion of visited vertices")
         plt.legend()
         plt.show()
+
+    @staticmethod
+    def plot_rw_on_rg_visited_prop_largest_compo(n, p ,steps, k =1, threshold = 0.5, return_avg = True):
+        """
+        Plot the average proportion of visited vertices at each step 
+        of a random walk on a random graph over k samples
+        exclude the sample with less than 0.5
+        """
+        random_walker = RandomWalker()
+        proportion_sum = np.zeros(steps+1)
+        sample_count = 0
+        while sample_count < k:
+            graph = Graph.get_er_random_graph(n, p)
+            results = Simulator.simulate_walk(graph, random_walker, steps)
+
+            if results['proportions'][-1] > threshold:
+                proportion_sum += results['proportions']
+                sample_count += 1 
+            else:
+                continue
+
+        proportion_avg = proportion_sum / k
+
+        plt.plot(np.arange(1, len(proportion_avg)+1, step=1),
+                 proportion_avg, label='k = {:d}, n={:d}, p={:.2f}'.format(k, n, p))
+        plt.title("Proportion of Visited Vertices vs. # of Steps")
+        plt.xlabel("# of Steps")
+        plt.ylabel("Proportion of visited vertices")
+        plt.legend()
+        plt.show()
+
+        if return_avg:
+            return proportion_avg
