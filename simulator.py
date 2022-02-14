@@ -1,8 +1,10 @@
+from audioop import avg
 import numpy as np
 import matplotlib.pyplot as plt
 
 from graph import Graph
 from walkers import RandomWalker
+from utils import largest_comp
 
 
 class Simulator:
@@ -39,19 +41,33 @@ class Simulator:
         return results
 
     @staticmethod
-    def plot_rw_on_rg_visited_prop(n, p, steps, k=1):
+    def plot_rw_on_rg_visited_prop(n, p, k=1, comp_adj=True, d=None):
         """
-        Plot the average proportion of visited vertices at each step 
-        of a random walk on a random graph over k samples
+        Plot the average proportion of visited vertices over n*log(n)^2 steps
+        of a random walk on a random graph over k samples. 
+
+        If comp_adj is true, we exclude simulated runs that do not visit a 
+        certain proportion of vertices after n*log(n)^2 steps, as you can
+        be fairly certain these simulations do not start in the largest component
+        of the graph.
         """
         random_walker = RandomWalker()
+        steps = int(n*np.log(n)*np.log(n))
         proportion_sum = np.zeros(steps+1)
-        for i in range(k):
+
+        f_d = largest_comp(d)
+        valid_samples = 0
+        while valid_samples < k:
             graph = Graph.get_er_random_graph(n, p)
             results = Simulator.simulate_walk(graph, random_walker, steps)
-            proportion_sum += results['proportions']
+            if results['proportions'][-1] >= f_d:
+                proportion_sum += results['proportions']
+                valid_samples += 1
         proportion_avg = proportion_sum / k
 
+        c = np.arange(0, 1, 0.1)*steps
+        avg_at_each_c = [proportion_avg[int(i)] for i in c]
+        plt.scatter(c, avg_at_each_c, c='r', s=50)
         plt.plot(np.arange(1, len(proportion_avg)+1, step=1),
                  proportion_avg, label='k = {:d}, n={:d}, p={:.2f}'.format(k, n, p))
         plt.title("Proportion of Visited Vertices vs. # of Steps")
