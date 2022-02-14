@@ -41,9 +41,9 @@ class Simulator:
         return results
 
     @staticmethod
-    def plot_rw_on_rg_visited_prop(n, p, k=1, comp_adj=True, d=None):
+    def simulate_rw_on_rg_visited_prop(n, p, k=1, comp_adj=True, d=None):
         """
-        Plot the average proportion of visited vertices over n*log(n)^2 steps
+        Simulate the average proportion of visited vertices over n*log(n)^2 steps
         of a random walk on a random graph over k samples. 
 
         If comp_adj is true, we exclude simulated runs that do not visit a 
@@ -64,6 +64,12 @@ class Simulator:
                 proportion_sum += results['proportions']
                 valid_samples += 1
         proportion_avg = proportion_sum / k
+        return proportion_avg
+
+    @staticmethod
+    def plot_rw_on_rg_visited_prop(n, p, k=1, comp_adj=True, d=None):
+        proportion_avg = Simulator.simulate_rw_on_rg_visited_prop(n, p, k, comp_adj, d)
+        steps = len(proportion_avg)-1
 
         c = np.arange(0, 1, 0.1)*steps
         avg_at_each_c = [proportion_avg[int(i)] for i in c]
