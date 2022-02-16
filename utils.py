@@ -12,5 +12,5 @@ def largest_comp(d):
     elif d == 5:
         f_d = 0.993
     elif d == 10:
-        f_d = 0.999
+        f_d = 0.9999
     return f_d
