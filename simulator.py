@@ -54,12 +54,12 @@ class Simulator:
         steps = int(n*np.log(n)*np.log(n))
         proportion_sum = np.zeros(steps+1)
 
-        threshold = largest_comp(d) 
+        threshold = largest_comp(d)
         valid_samples = 0
         while valid_samples < k:
             graph = Graph.get_er_random_graph(n, d/n)
             results = Simulator.simulate_walk(graph, random_walker, steps)
-            if results['proportions'][-1] >= threshold:
+            if results['proportions'][-1] >= threshold/2:
                 proportion_sum += results['proportions']
                 valid_samples += 1
         proportion_avg = proportion_sum / k
