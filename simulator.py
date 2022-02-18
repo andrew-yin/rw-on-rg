@@ -44,10 +44,8 @@ class Simulator:
         """
         Simulate the average proportion of visited vertices over n*log(n)^2 steps
         of a random walk on a random graph over k samples. 
-        Plot the average proportion of visited vertices over n*log(n)^2 steps
-        of a random walk on a random graph over k samples.
 
-        If comp_adj is true, we exclude simulated runs that do not visit a
+        If comp_adj is true, we exclude simulated runs that do not visit a 
         certain proportion of vertices after n*log(n)^2 steps, as you can
         be fairly certain these simulations do not start in the largest component
         of the graph.
