@@ -131,9 +131,7 @@ class Simulator:
         d_avg = 0 
         for d in d_p.keys():
             d_avg += d * d_p[d]
-        # c = np.arange(0, 1, 0.1)*(n*(np.log(n)**2))
-        # avg_at_each_c = [proportion_avg[int(i)] for i in c]
-        # plt.scatter(c, avg_at_each_c, c='r', s=50)
+        
         plt.plot(np.arange(1, len(proportion_avg)+1, step=1),
                  proportion_avg, label='k = {:d}, n={:d}, d_avg={:.2f}'.format(k, n, d_avg))
         plt.title("Proportion of Visited Vertices vs. # of Steps")
