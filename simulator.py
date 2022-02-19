@@ -99,3 +99,48 @@ class Simulator:
         plt.ylabel("Proportion of visited vertices")
         plt.legend()
         plt.show()
+
+   
+    # rw on degree_proportion
+    @staticmethod
+    def simulate_rw_on_degree_proportion_visited_prop(n, d_p, steps, k=1, return_avg = True):
+        random_walker = RandomWalker()
+        proportion_sum = np.zeros(steps+1)
+
+        d_avg = 0 
+        for d in d_p.keys():
+            d_avg += d * d_p[d]
+
+        threshold = largest_comp(d_avg) * 0.95
+        valid_samples = 0
+        d_seq = Graph.get_rg_degree_proportion_sequence_gen(n,d_p)
+        while valid_samples < k:
+            graph = Graph.get_rg_degree_distribution(d_seq)
+            results = Simulator.simulate_walk(graph, random_walker, steps)
+            if results['proportions'][-1] >= threshold:
+                proportion_sum += results['proportions']
+                valid_samples += 1
+        proportion_avg = proportion_sum / k
+
+        return proportion_avg
+    
+    
+    @staticmethod
+    def plot_rw_on_degree_proportion_visited_prop(n, d_p, steps, k=1, return_avg = True):
+        proportion_avg = Simulator.simulate_rw_on_degree_proportion_visited_prop(n, d_p, steps, k, return_avg = True)
+        d_avg = 0 
+        for d in d_p.keys():
+            d_avg += d * d_p[d]
+        # c = np.arange(0, 1, 0.1)*(n*(np.log(n)**2))
+        # avg_at_each_c = [proportion_avg[int(i)] for i in c]
+        # plt.scatter(c, avg_at_each_c, c='r', s=50)
+        plt.plot(np.arange(1, len(proportion_avg)+1, step=1),
+                 proportion_avg, label='k = {:d}, n={:d}, d_avg={:.2f}'.format(k, n, d_avg))
+        plt.title("Proportion of Visited Vertices vs. # of Steps")
+        plt.xlabel("# of Steps")
+        plt.ylabel("Proportion of visited vertices")
+        plt.legend()
+        plt.show()
+        if return_avg:
+            return proportion_avg
+
