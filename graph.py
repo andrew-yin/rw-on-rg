@@ -43,7 +43,59 @@ class Graph:
         d_seq = [d2] * count_d2 + [d1] * count_d1
 
         return d_seq
+    
+    @staticmethod
+    def get_rg_degree_proportion_sequence_gen(n: int, d_p: dict):
+        '''
+        take a dictionary of desired degree distribution in the format {degree:proportion}
+        return a sequence with lenth n that roughly agree with the degree distribution and is always graphible
+        '''
 
+        d_list = list(d_p.keys())
+        d_list.sort(reverse=True)
+
+        p_list = [d_p[d] for d in d_list]
+        if abs(sum(p_list)-1) >=0.001:
+            raise ValueError('probabilities should add up to one')
+
+        count_list = [round(n*p) for p in p_list[:-1]]
+        last_count = n - sum(count_list)
+        count_list.append(last_count)
+
+        least_odd_indice = None
+        least_even_indice = None
+        cur_indice = -1
+        while least_odd_indice == None or least_even_indice == None:
+            if d_list[cur_indice]%2 == 1:
+                if least_odd_indice != None:
+                    cur_indice += -1
+                else:
+                    least_odd_indice = cur_indice
+                    cur_indice += -1
+            else:
+                if least_even_indice != None:
+                    cur_indice += -1
+                else:
+                    least_even_indice = cur_indice
+                    cur_indice += -1
+
+        # even check
+        total = 0
+        for i in range(len(d_list)):
+            total += d_list[i] * count_list[i]
+        if total%2 == 1:
+            count_list[least_odd_indice] += 1
+            count_list[least_even_indice] += -1
+
+        #feasibility check
+        if min(count_list) <= d_list[1]:
+            raise ValueError('n too small')
+        
+
+        d_seq = []
+        for i in range(len(d_list)):
+            d_seq = d_seq + [d_list[i]] * count_list[i]
+        return d_seq
     
     @staticmethod
     def get_rg_degree_distribution(d_seq):
