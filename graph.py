@@ -65,7 +65,7 @@ class Graph:
         least_odd_indice = None
         least_even_indice = None
         cur_indice = -1
-        while least_odd_indice == None or least_even_indice == None:
+        while (least_odd_indice == None or least_even_indice == None) and cur_indice >= -len(d_p):
             if d_list[cur_indice]%2 == 1:
                 if least_odd_indice != None:
                     cur_indice += -1
