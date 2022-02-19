@@ -99,3 +99,33 @@ class Simulator:
         plt.ylabel("Proportion of visited vertices")
         plt.legend()
         plt.show()
+
+    @staticmethod
+    def simulate_rw_on_k_regular_visited_prop(d, n, steps,k=1):
+        """
+        Plot the average proportion of visited vertices at each step
+        of a random walk on a k-regular random graph over k samples
+        """
+        random_walker = RandomWalker()
+        proportion_sum = np.zeros(steps+1)
+        for i in range(k):
+            graph = Graph.get_k_regular_random_graph(d, n)
+            results = Simulator.simulate_walk(graph, random_walker, steps)
+            proportion_sum += results['proportions']
+        proportion_avg = proportion_sum / k
+        return proportion_avg
+
+    @staticmethod
+    def simulate_guw_on_k_regular_visited_prop(d, n, steps,k=1):
+        """
+        Plot the average proportion of visited vertices at each step
+        of a greedy unbiased random walk on a k-regular random graph over k samples
+        """
+        random_walker = GreedyUnbiasedWalker()
+        proportion_sum = np.zeros(steps+1)
+        for i in range(k):
+            graph = Graph.get_k_regular_random_graph(d, n)
+            results = Simulator.simulate_walk(graph, random_walker, steps)
+            proportion_sum += results['proportions']
+        proportion_avg = proportion_sum / k
+        return proportion_avg
