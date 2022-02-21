@@ -104,6 +104,10 @@ class Simulator:
     # rw on degree_proportion
     @staticmethod
     def simulate_rw_on_degree_proportion_visited_prop(n, d_p, steps, k=1, return_avg = True):
+        '''
+        Take a degree distribution as a dictionary of the form {degree: percentage}
+        simulate rw on the corresponding random degree proportion graph
+        '''
         random_walker = RandomWalker()
         proportion_sum = np.zeros(steps+1)
 
