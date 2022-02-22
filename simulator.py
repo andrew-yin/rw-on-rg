@@ -103,7 +103,7 @@ class Simulator:
     @staticmethod
     def simulate_rw_on_k_regular_visited_prop(d, n, steps,k=1):
         """
-        Plot the average proportion of visited vertices at each step
+        Simulate the average proportion of visited vertices at each step
         of a random walk on a k-regular random graph over k samples
         """
         random_walker = RandomWalker()
@@ -118,7 +118,7 @@ class Simulator:
     @staticmethod
     def simulate_guw_on_k_regular_visited_prop(d, n, steps,k=1):
         """
-        Plot the average proportion of visited vertices at each step
+        Simulate the average proportion of visited vertices at each step
         of a greedy unbiased random walk on a k-regular random graph over k samples
         """
         random_walker = GreedyUnbiasedWalker()
@@ -129,3 +129,48 @@ class Simulator:
             proportion_sum += results['proportions']
         proportion_avg = proportion_sum / k
         return proportion_avg
+
+    @staticmethod
+    def simulate_rw_on_expected_d_visited_prop(d, p, n, steps,k=1):
+        """
+        Simulate the average proportion of visited vertices at each step
+        of a random walk on a random graph with each node having an expected degree of d over k samples
+        """
+        random_walker = RandomWalker()
+        proportion_sum = np.zeros(steps+1)
+        for i in range(k):
+            graph = Graph.get_expected_d_random_graph(d, p, n)
+            results = Simulator.simulate_walk(graph, random_walker, steps)
+            proportion_sum += results['proportions']
+        proportion_avg = proportion_sum / k
+        return proportion_avg
+
+    @staticmethod
+    def simulate_guw_on_expected_d_visited_prop(d, p, n, steps,k=1):
+        """
+        Simulate the average proportion of visited vertices at each step
+        of a greedy unbiased walk on a random graph with each node having an expected degree of d over k samples
+        """
+        random_walker = GreedyUnbiasedWalker()
+        proportion_sum = np.zeros(steps+1)
+        for i in range(k):
+            graph = Graph.get_expected_d_random_graph(d, p, n)
+            results = Simulator.simulate_walk(graph, random_walker, steps)
+            proportion_sum += results['proportions']
+        proportion_avg = proportion_sum / k
+        return proportion_avg
+
+    @staticmethod
+    def plot_compare_strats_expected_d(n, k, d, p):
+        steps = int(n*np.log(n)*np.log(n))
+        expected_d_rand = Simulator.simulate_rw_on_expected_d_visited_prop(d, p, n, steps, k)
+        expected_d_greed = Simulator.simulate_guw_on_expected_d_visited_prop(d, p, n, steps, k)
+        t = np.arange(1, len(expected_d_rand)+1, step=1)
+        plt.plot(t, expected_d_rand, label='expected d: random')
+        plt.plot(t, expected_d_greed, label='expected d: greedy')
+        plt.title("strategies on expected d: Proportion of Visited Vertices vs. # of Steps")
+        plt.xlabel("# of Steps")
+        plt.ylabel("Proportion of visited vertices")
+        plt.hlines(1,0,len(t),colors='black',linestyles='dashed')
+        plt.legend(title='n={:n}, '.format(n)+'k={:d}, '.format(k)+'steps={:d}'.format(steps))
+        plt.show()
