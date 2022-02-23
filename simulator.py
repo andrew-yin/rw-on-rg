@@ -1,16 +1,20 @@
+
 import numpy as np
 import matplotlib.pyplot as plt
-
 from graph import Graph
-from walkers import RandomWalker, GreedyUnbiasedWalker
+from walkers import RandomWalker
+from walkers.greedy_unbiased_walker import GreedyUnbiasedWalker
+from walkers.degree_biased_walker import DegreeBiasedWalker
 from utils import largest_comp
+
+
 
 
 class Simulator:
 
     def __init__(self):
         pass
-
+   
     @staticmethod
     def simulate_walk(graph, walker, steps, calculate_prop=True):
         walker.reset()
@@ -39,44 +43,55 @@ class Simulator:
             results['proportions'] = proportions/n
         return results
 
-    @staticmethod
-    def simulate_rw_on_rg_visited_prop(n, p, k=1, comp_adj=True, d=None):
-        """
-        Simulate the average proportion of visited vertices over n*log(n)^2 steps
-        of a random walk on a random graph over k samples. 
 
-        If comp_adj is true, we exclude simulated runs that do not visit a 
-        certain proportion of vertices after n*log(n)^2 steps, as you can
-        be fairly certain these simulations do not start in the largest component
-        of the graph.
-        """
-        random_walker = RandomWalker()
-        steps = int(n*np.log(n)*np.log(n))
+    # general walk on rg
+    @staticmethod
+    def simulate_w_on_rg_visited_prop(n,d,steps, walk_class, walker_para = None ,k=1,return_value =True):
+        if not walker_para:
+            walker = walk_class()
+        else:
+            walker = walk_class(walker_para)
         proportion_sum = np.zeros(steps+1)
 
-        threshold = largest_comp(d)
+        threshold = largest_comp(d) * 0.95
         valid_samples = 0
         while valid_samples < k:
             graph = Graph.get_er_random_graph(n, d/n)
-            results = Simulator.simulate_walk(graph, random_walker, steps)
-            if results['proportions'][-1] >= threshold/2:
+            results = Simulator.simulate_walk(graph, walker, steps)
+            if results['proportions'][-1] >= threshold:
                 proportion_sum += results['proportions']
                 valid_samples += 1
         proportion_avg = proportion_sum / k
         return proportion_avg
-
+    
     @staticmethod
-    def simulate_guw_on_rg_visited_prop(n, p, k=1, comp_adj=True, d=None):
-        greedy_walker = GreedyUnbiasedWalker()
-        steps = int(n*np.log(n)*np.log(n))
+    def plot_w_on_rg_visited_prop(n,d,steps,walk_class, walker_para = None, k=1, return_value = True):
+        proportion_avg = Simulator.simulate_w_on_rg_visited_prop(n,d,steps,walk_class, walker_para, k, return_value = True)
+
+        plt.plot(np.arange(1, len(proportion_avg)+1, step=1),
+                 proportion_avg, label='k = {:d}, n={:d}, p={:.2f}'.format(k, n, d/n))
+        plt.title("Proportion of Visited Vertices vs. # of Steps")
+        plt.xlabel("# of Steps")
+        plt.ylabel("Proportion of visited vertices")
+        plt.legend()
+        plt.show()
+        if return_value:
+            return proportion_avg
+
+    # general walk on k_regular
+    @staticmethod
+    def simulate_w_on_k_regular_visited_prop(n,d,steps, walk_class, walker_para = None ,k=1,return_value =True):
+        if not walker_para:
+            walker = walk_class()
+        else:
+            walker = walk_class(walker_para)
         proportion_sum = np.zeros(steps+1)
 
-        threshold = largest_comp(d)
+        threshold = largest_comp(d) * 0.95
         valid_samples = 0
         while valid_samples < k:
-            graph = Graph.get_er_random_graph(n, p)
-            results = Simulator.simulate_walk(
-                graph, greedy_walker, steps)
+            graph = Graph.get_k_regular_random_graph(n, d)
+            results = Simulator.simulate_walk(graph, walker, steps)
             if results['proportions'][-1] >= threshold:
                 proportion_sum += results['proportions']
                 valid_samples += 1
@@ -84,138 +99,132 @@ class Simulator:
         return proportion_avg
 
     @staticmethod
-    def plot_rw_on_rg_visited_prop(n, p, k=1, comp_adj=True, d=None):
-        proportion_avg = Simulator.simulate_rw_on_rg_visited_prop(
-            n, p, k, comp_adj, d)
-        steps = len(proportion_avg)-1
+    def plot_w_on_k_regular_visited_prop(n,d,steps, walk_class, walker_para = None ,k=1,return_value =True):
+        proportion_avg = Simulator.simulate_w_on_k_regular_visited_prop(n,d,steps,walk_class, walker_para, k, return_value = True)
 
-        c = np.arange(0, 1, 0.1)*steps
-        avg_at_each_c = [proportion_avg[int(i)] for i in c]
-        plt.scatter(c, avg_at_each_c, c='r', s=50)
         plt.plot(np.arange(1, len(proportion_avg)+1, step=1),
-                 proportion_avg, label='k = {:d}, n={:d}, p={:.2f}'.format(k, n, p))
+                 proportion_avg, label='k = {:d}, n={:d}, d={:d}'.format(k, n, d))
         plt.title("Proportion of Visited Vertices vs. # of Steps")
         plt.xlabel("# of Steps")
         plt.ylabel("Proportion of visited vertices")
         plt.legend()
         plt.show()
+        if return_value:
+            return proportion_avg
 
-    # rw on degree_proportion
+    # general walk on dp
     @staticmethod
-    def simulate_rw_on_degree_proportion_visited_prop(n, d_p, steps, k=1, return_avg = True):
-        '''
-        Take a degree distribution as a dictionary of the form {degree: percentage}
-        simulate rw on the corresponding random degree proportion graph
-        '''
-        random_walker = RandomWalker()
+    def simulate_w_on_dp_visited_prop(n,d_p,steps,walk_class,walker_para = None, k=1, return_value = True):
+        if not walker_para:
+            walker = walk_class()
+        else:
+            walker = walk_class(walker_para)
         proportion_sum = np.zeros(steps+1)
 
         d_avg = 0 
         for d in d_p.keys():
             d_avg += d * d_p[d]
 
-        threshold = largest_comp(d_avg) * 0.95
+        threshold = largest_comp(d_avg) * 0.5
         valid_samples = 0
         d_seq = Graph.get_rg_degree_proportion_sequence_gen(n,d_p)
         while valid_samples < k:
             graph = Graph.get_rg_degree_distribution(d_seq)
-            results = Simulator.simulate_walk(graph, random_walker, steps)
+            results = Simulator.simulate_walk(graph, walker, steps)
             if results['proportions'][-1] >= threshold:
                 proportion_sum += results['proportions']
                 valid_samples += 1
         proportion_avg = proportion_sum / k
+        if return_value:
+            return proportion_avg
 
-        return proportion_avg
-    
-    
     @staticmethod
-    def plot_rw_on_degree_proportion_visited_prop(n, d_p, steps, k=1, return_avg = True):
-        proportion_avg = Simulator.simulate_rw_on_degree_proportion_visited_prop(n, d_p, steps, k, return_avg = True)
-        d_avg = 0 
-        for d in d_p.keys():
-            d_avg += d * d_p[d]
-        
+    def plot_w_on_dp_visited_prop(n,d_p,steps,walk_class,walker_para = None, k=1, return_value = True):
+        proportion_avg = Simulator.simulate_w_on_dp_visited_prop(n,d_p,steps,walk_class,walker_para, k, return_value=True)
+
         plt.plot(np.arange(1, len(proportion_avg)+1, step=1),
-                 proportion_avg, label='k = {:d}, n={:d}, d_avg={:.2f}'.format(k, n, d_avg))
-        plt.title("Proportion of Visited Vertices vs. # of Steps")
+                 proportion_avg, label='k = {:d}, n={:d}, d_distribution={}'.format(k, n, d_p))
+        plt.title("Proportion of Visited Vertices vs. # of Steps on BA model")
         plt.xlabel("# of Steps")
         plt.ylabel("Proportion of visited vertices")
         plt.legend()
         plt.show()
-        if return_avg:
+        if return_value:
+            return proportion_avg
+
+    # general walk on BA 
+    @staticmethod
+    def simulate_w_on_ba_visited_prop(n,m,steps,walk_class,walker_para = None, k=1, return_value = True):
+        if not walker_para:
+            walker = walk_class()
+        else:
+            walker = walk_class(walker_para)
+        proportion_sum = np.zeros(steps+1)
+
+        threshold = 0.95
+        valid_samples = 0
+        while valid_samples < k:
+            graph = Graph.get_BA_model_graph(n,m)
+            results = Simulator.simulate_walk(graph, walker, steps)
+            if results['proportions'][-1] >= threshold:
+                proportion_sum += results['proportions']
+                valid_samples += 1
+        proportion_avg = proportion_sum / k
+        if return_value:
             return proportion_avg
 
     @staticmethod
-    def simulate_rw_on_k_regular_visited_prop(d, n, steps,k=1):
-        """
-        Simulate the average proportion of visited vertices at each step
-        of a random walk on a k-regular random graph over k samples
-        """
-        random_walker = RandomWalker()
-        proportion_sum = np.zeros(steps+1)
-        for i in range(k):
-            graph = Graph.get_k_regular_random_graph(d, n)
-            results = Simulator.simulate_walk(graph, random_walker, steps)
-            proportion_sum += results['proportions']
-        proportion_avg = proportion_sum / k
-        return proportion_avg
+    def plot_w_on_ba_visited_prop(n,m,steps,walk_class,walker_para = None,k=1, return_value=True):
+        proportion_avg = Simulator.simulate_w_on_ba_visited_prop(n,m,steps,walk_class,walker_para, k, return_value=True)
 
-    @staticmethod
-    def simulate_guw_on_k_regular_visited_prop(d, n, steps,k=1):
-        """
-        Simulate the average proportion of visited vertices at each step
-        of a greedy unbiased random walk on a k-regular random graph over k samples
-        """
-        random_walker = GreedyUnbiasedWalker()
-        proportion_sum = np.zeros(steps+1)
-        for i in range(k):
-            graph = Graph.get_k_regular_random_graph(d, n)
-            results = Simulator.simulate_walk(graph, random_walker, steps)
-            proportion_sum += results['proportions']
-        proportion_avg = proportion_sum / k
-        return proportion_avg
-
-    @staticmethod
-    def simulate_rw_on_expected_d_visited_prop(d, p, n, steps,k=1):
-        """
-        Simulate the average proportion of visited vertices at each step
-        of a random walk on a random graph with each node having an expected degree of d over k samples
-        """
-        random_walker = RandomWalker()
-        proportion_sum = np.zeros(steps+1)
-        for i in range(k):
-            graph = Graph.get_expected_d_random_graph(d, p, n)
-            results = Simulator.simulate_walk(graph, random_walker, steps)
-            proportion_sum += results['proportions']
-        proportion_avg = proportion_sum / k
-        return proportion_avg
-
-    @staticmethod
-    def simulate_guw_on_expected_d_visited_prop(d, p, n, steps,k=1):
-        """
-        Simulate the average proportion of visited vertices at each step
-        of a greedy unbiased walk on a random graph with each node having an expected degree of d over k samples
-        """
-        random_walker = GreedyUnbiasedWalker()
-        proportion_sum = np.zeros(steps+1)
-        for i in range(k):
-            graph = Graph.get_expected_d_random_graph(d, p, n)
-            results = Simulator.simulate_walk(graph, random_walker, steps)
-            proportion_sum += results['proportions']
-        proportion_avg = proportion_sum / k
-        return proportion_avg
-
-    @staticmethod
-    def plot_compare_strats_expected_d(n, k, d, p):
-        steps = int(n*np.log(n)*np.log(n))
-        expected_d_rand = Simulator.simulate_rw_on_expected_d_visited_prop(d, p, n, steps, k)
-        expected_d_greed = Simulator.simulate_guw_on_expected_d_visited_prop(d, p, n, steps, k)
-        t = np.arange(1, len(expected_d_rand)+1, step=1)
-        plt.plot(t, expected_d_rand, label='expected d: random')
-        plt.plot(t, expected_d_greed, label='expected d: greedy')
-        plt.title("strategies on expected d: Proportion of Visited Vertices vs. # of Steps")
+        plt.plot(np.arange(1, len(proportion_avg)+1, step=1),
+                 proportion_avg, label='k = {:d}, n={:d}, m={:d}'.format(k, n, m))
+        plt.title("Proportion of Visited Vertices vs. # of Steps on BA model")
         plt.xlabel("# of Steps")
         plt.ylabel("Proportion of visited vertices")
-        plt.hlines(1,0,len(t),colors='black',linestyles='dashed')
-        plt.legend(title='n={:n}, '.format(n)+'k={:d}, '.format(k)+'steps={:d}'.format(steps))
+        plt.legend()
         plt.show()
+        if return_value:
+            return proportion_avg
+
+    # general walk on expected degree (ed) graph
+    @staticmethod
+    def simulate_w_on_ed_visited_prop(n,d_p,steps,walk_class,walker_para = None, k=1, return_value = True):
+        if not walker_para:
+            walker = walk_class()
+        else:
+            walker = walk_class(walker_para)
+        proportion_sum = np.zeros(steps+1)
+
+        d_avg = 0 
+        for d in d_p.keys():
+            d_avg += d * d_p[d]
+
+        threshold = largest_comp(d_avg) * 0.5
+        valid_samples = 0
+        while valid_samples < k:
+            graph = Graph.get_expected_d_random_graph(n,d_p)
+            results = Simulator.simulate_walk(graph, walker, steps)
+            if results['proportions'][-1] >= threshold:
+                proportion_sum += results['proportions']
+                valid_samples += 1
+        proportion_avg = proportion_sum / k
+        if return_value:
+            return proportion_avg
+    
+    @staticmethod
+    def plot_w_on_ed_visited_prop(n,d_p,steps,walk_class,walker_para = None, k=1, return_value = True):
+        proportion_avg = Simulator.simulate_w_on_ed_visited_prop(n,d_p,steps,walk_class,walker_para, k, return_value=True)
+
+        plt.plot(np.arange(1, len(proportion_avg)+1, step=1),
+                 proportion_avg, label='k = {:d}, n={:d}, d_distribution={}'.format(k, n, d_p))
+        plt.title("Proportion of Visited Vertices vs. # of Steps on expected degree graph")
+        plt.xlabel("# of Steps")
+        plt.ylabel("Proportion of visited vertices")
+        plt.legend()
+        plt.show()
+        if return_value:
+            return proportion_avg
+
+
+
