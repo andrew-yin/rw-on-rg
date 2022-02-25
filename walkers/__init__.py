@@ -1,2 +1,3 @@
 from walkers.random_walker import RandomWalker
 from walkers.greedy_unbiased_walker import GreedyUnbiasedWalker
+from walkers.degree_biased_walker import DegreeBiasedWalker
