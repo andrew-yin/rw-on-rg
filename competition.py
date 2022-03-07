@@ -320,7 +320,7 @@ class Competition():
         plt.plot(x,walk_total, label = 'total')
 
 
-        plt.title("Proportion of Visited Vertices vs. # of Steps on EDP with 'k = {:d}, n={:d}, m={:d}'".format(k, n, m))
+        plt.title("Proportion of Visited Vertices vs. # of Steps on BA with 'k = {:d}, n={:d}, m={:d}'".format(k, n, m))
         plt.xlabel("# of Steps")
         plt.ylabel("Proportion of visited vertices")
         plt.legend()
