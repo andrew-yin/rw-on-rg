@@ -24,3 +24,19 @@ class DualWalker(ABC):
         Moves the walker to the next node in the graph given a strategy
         """
         pass
+
+    
+
+    def get_m_length_neighbor(self, node, length):
+        '''
+        return all the neighbors with length less than or equal to a number
+        '''
+        neighbors_cur = set(self.neighbors[node])
+        if length == 1:
+            return neighbors_cur
+        else:
+            for i in range(length-1):
+                adding = {new_neighbor  for neighbor in neighbors_cur for new_neighbor in self.neighbors[neighbor]}
+                neighbors_cur = adding + neighbors_cur
+            
+            return neighbors_cur
