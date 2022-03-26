@@ -10,6 +10,7 @@ from dual_walker.dual_walker_rw_switch_llpg_guo import DWRandomSwitchLLPGtoGUO
 from dual_walker.dual_walker_rw_degree_two_guo import DWRandomDegree2GUO
 from dual_walker.dual_walker_rw_switch_llpg_2dguo import DWRandomSwitchLLPGto2dGUO
 from dual_walker.dual_walker_rw_degree_three_guo import DWRandomDegree3GUO
+from dual_walker.dual_walker_rw_general_guo import DWRandomGeneralGUO
 import numpy as np
 import matplotlib.pyplot as plt
 from graph import Graph
@@ -259,5 +260,3 @@ class CompetitionDual():
         if return_value:
             return results
 
-
-CompetitionDual.plot_competition_dual_on_er(1000,10,5000,DWRandomDegree2GUO,k=50)

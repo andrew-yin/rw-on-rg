@@ -12,7 +12,7 @@ class Simulator:
         pass
 
     @staticmethod
-    def simulate_walk(graph, walker, steps, calculate_prop=True):
+    def simulate_walk(graph, walker, steps, on_largest_comp = False, calculate_prop=True):
         walker.reset()
         walker.load_graph(graph)
         n = len(graph)
@@ -36,11 +36,14 @@ class Simulator:
             'walk': walk,
         }
         if calculate_prop:
-            results['proportions'] = proportions/n
+            if on_largest_comp:
+                results['proportions'] = proportions/Graph.get_largest_comp_size(graph)
+            else:
+                results['proportions'] = proportions/n
         return results
 
     @staticmethod
-    def simulate_w_on_rg_visited_prop(n, d, steps, walker_class, walker_params=None, k=1):
+    def simulate_w_on_rg_visited_prop(n, d, steps, walker_class, walker_params=None, on_largest_comp = False, k=1):
         if not walker_params:
             walker = walker_class()
         else:
@@ -51,7 +54,7 @@ class Simulator:
         valid_samples = 0
         while valid_samples < k:
             graph = Graph.get_er_random_graph(n, d/n)
-            results = Simulator.simulate_walk(graph, walker, steps)
+            results = Simulator.simulate_walk(graph, walker, steps, on_largest_comp)
             if results['proportions'][-1] >= threshold:
                 proportion_sum += results['proportions']
                 valid_samples += 1
@@ -59,9 +62,9 @@ class Simulator:
         return proportion_avg
 
     @staticmethod
-    def plot_w_on_rg_visited_prop(n, d, steps, walker_class, walker_params=None, k=1, return_value=True):
+    def plot_w_on_rg_visited_prop(n, d, steps, walker_class, walker_params=None, on_largest_comp = False, k=1, return_value=True):
         proportion_avg = Simulator.simulate_w_on_rg_visited_prop(
-            n, d, steps, walker_class, walker_params, k)
+            n, d, steps, walker_class, walker_params, on_largest_comp, k)
 
         plt.plot(np.arange(1, len(proportion_avg)+1, step=1),
                  proportion_avg, label='k = {:d}, n={:d}, p={:.2f}'.format(k, n, d/n))
@@ -74,7 +77,7 @@ class Simulator:
             return proportion_avg
 
     @staticmethod
-    def simulate_w_on_k_regular_visited_prop(n, d, steps, walker_class, walker_params=None, k=1):
+    def simulate_w_on_k_regular_visited_prop(n, d, steps, walker_class, walker_params=None, on_largest_comp = False, k=1):
         if not walker_params:
             walker = walker_class()
         else:
@@ -85,7 +88,7 @@ class Simulator:
         valid_samples = 0
         while valid_samples < k:
             graph = Graph.get_k_regular_random_graph(n, d)
-            results = Simulator.simulate_walk(graph, walker, steps)
+            results = Simulator.simulate_walk(graph, walker, steps, on_largest_comp)
             if results['proportions'][-1] >= threshold:
                 proportion_sum += results['proportions']
                 valid_samples += 1
@@ -93,9 +96,9 @@ class Simulator:
         return proportion_avg
 
     @staticmethod
-    def plot_w_on_k_regular_visited_prop(n, d, steps, walker_class, walker_params=None, k=1, return_value=True):
+    def plot_w_on_k_regular_visited_prop(n, d, steps, walker_class, walker_params=None, on_largest_comp = False, k=1, return_value=True):
         proportion_avg = Simulator.simulate_w_on_k_regular_visited_prop(
-            n, d, steps, walker_class, walker_params, k)
+            n, d, steps, walker_class, walker_params, on_largest_comp, k)
 
         plt.plot(np.arange(1, len(proportion_avg)+1, step=1),
                  proportion_avg, label='k = {:d}, n={:d}, d={:d}'.format(k, n, d))
@@ -108,7 +111,7 @@ class Simulator:
             return proportion_avg
 
     @staticmethod
-    def simulate_w_on_dp_visited_prop(n, d_p, steps, walker_class, walker_params=None, k=1):
+    def simulate_w_on_dp_visited_prop(n, d_p, steps, walker_class, walker_params=None, on_largest_comp = False, k=1):
         if not walker_params:
             walker = walker_class()
         else:
@@ -124,7 +127,7 @@ class Simulator:
         d_seq = Graph.get_rg_degree_proportion_sequence_gen(n, d_p)
         while valid_samples < k:
             graph = Graph.get_rg_degree_distribution(d_seq)
-            results = Simulator.simulate_walk(graph, walker, steps)
+            results = Simulator.simulate_walk(graph, walker, steps, on_largest_comp=on_largest_comp)
             if results['proportions'][-1] >= threshold:
                 proportion_sum += results['proportions']
                 valid_samples += 1
@@ -132,9 +135,9 @@ class Simulator:
         return proportion_avg
 
     @staticmethod
-    def plot_w_on_dp_visited_prop(n, d_p, steps, walker_class, walker_params=None, k=1, return_value=True):
+    def plot_w_on_dp_visited_prop(n, d_p, steps, walker_class, walker_params=None, on_largest_comp = False, k=1, return_value=True):
         proportion_avg = Simulator.simulate_w_on_dp_visited_prop(
-            n, d_p, steps, walker_class, walker_params, k)
+            n, d_p, steps, walker_class, walker_params, on_largest_comp, k)
 
         plt.plot(np.arange(1, len(proportion_avg)+1, step=1),
                  proportion_avg, label='k = {:d}, n={:d}, d_distribution={}'.format(k, n, d_p))
@@ -147,7 +150,7 @@ class Simulator:
             return proportion_avg
 
     @staticmethod
-    def simulate_w_on_ba_visited_prop(n, m, steps, walker_class, walker_params=None, k=1):
+    def simulate_w_on_ba_visited_prop(n, m, steps, walker_class, walker_params=None, on_largest_comp = False, k=1):
         if not walker_params:
             walker = walker_class()
         else:
@@ -158,7 +161,7 @@ class Simulator:
         valid_samples = 0
         while valid_samples < k:
             graph = Graph.get_BA_model_graph(n, m)
-            results = Simulator.simulate_walk(graph, walker, steps)
+            results = Simulator.simulate_walk(graph, walker, steps, on_largest_comp=on_largest_comp)
             if results['proportions'][-1] >= threshold:
                 proportion_sum += results['proportions']
                 valid_samples += 1
@@ -166,9 +169,9 @@ class Simulator:
         return proportion_avg
 
     @staticmethod
-    def plot_w_on_ba_visited_prop(n, m, steps, walker_class, walker_params=None, k=1, return_value=True):
+    def plot_w_on_ba_visited_prop(n, m, steps, walker_class, walker_params=None, on_largest_comp = False, k=1, return_value=True):
         proportion_avg = Simulator.simulate_w_on_ba_visited_prop(
-            n, m, steps, walker_class, walker_params, k)
+            n, m, steps, walker_class, walker_params, on_largest_comp, k)
 
         plt.plot(np.arange(1, len(proportion_avg)+1, step=1),
                  proportion_avg, label='k = {:d}, n={:d}, m={:d}'.format(k, n, m))
@@ -181,7 +184,7 @@ class Simulator:
             return proportion_avg
 
     @staticmethod
-    def simulate_w_on_ed_visited_prop(n, d_p, steps, walker_class, walker_params=None, k=1):
+    def simulate_w_on_ed_visited_prop(n, d_p, steps, walker_class, walker_params=None, on_largest_comp = False, k=1):
         if not walker_params:
             walker = walker_class()
         else:
@@ -196,7 +199,7 @@ class Simulator:
         valid_samples = 0
         while valid_samples < k:
             graph = Graph.get_expected_d_random_graph(n, d_p)
-            results = Simulator.simulate_walk(graph, walker, steps)
+            results = Simulator.simulate_walk(graph, walker, steps, on_largest_comp=on_largest_comp)
             if results['proportions'][-1] >= threshold:
                 proportion_sum += results['proportions']
                 valid_samples += 1
@@ -204,9 +207,9 @@ class Simulator:
         return proportion_avg
 
     @staticmethod
-    def plot_w_on_ed_visited_prop(n, d_p, steps, walker_class, walker_params=None, k=1, return_value=True):
+    def plot_w_on_ed_visited_prop(n, d_p, steps, walker_class, walker_params=None, on_largest_comp = False, k=1, return_value=True):
         proportion_avg = Simulator.simulate_w_on_ed_visited_prop(
-            n, d_p, steps, walker_class, walker_params, k)
+            n, d_p, steps, walker_class, walker_params, on_largest_comp, k)
 
         plt.plot(np.arange(1, len(proportion_avg)+1, step=1),
                  proportion_avg, label='k = {:d}, n={:d}, d_distribution={}'.format(k, n, d_p))
@@ -218,3 +221,5 @@ class Simulator:
         plt.show()
         if return_value:
             return proportion_avg
+
+ 

@@ -124,3 +124,10 @@ class Graph:
             d_seq = d_seq + [d_list[i]] * count_list[i]
         return nx.expected_degree_graph(d_seq)
 
+    @staticmethod
+    def get_largest_comp_size(graph):
+        '''
+        return the size of the largest component
+        '''
+        size_list = [ len(component) for component in sorted(nx.connected_components(graph), key=len, reverse=True) ]
+        return size_list[0]
