@@ -11,6 +11,7 @@ from dual_walker.dual_walker_rw_degree_two_guo import DWRandomDegree2GUO
 from dual_walker.dual_walker_rw_switch_llpg_2dguo import DWRandomSwitchLLPGto2dGUO
 from dual_walker.dual_walker_rw_degree_three_guo import DWRandomDegree3GUO
 from dual_walker.dual_walker_rw_general_guo import DWRandomGeneralGUO
+from dual_walker.dual_walker_rw_general_guo_optimized import DWRandomGeneralGUORevised
 import numpy as np
 import matplotlib.pyplot as plt
 from graph import Graph

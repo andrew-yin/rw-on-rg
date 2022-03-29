@@ -40,3 +40,25 @@ class DualWalker(ABC):
                 neighbors_cur = adding + neighbors_cur
             
             return neighbors_cur
+
+    def get_dist_neighbor_dict(self, node, max_dist):
+        '''
+        A breadth first search for neighbors with different distances 
+        '''
+        if max_dist <= 1:
+            raise ValueError('max_length should be at least 2')
+        else: 
+            cur_shell = self.neighbors[node]
+            visited = set(cur_shell)
+            dist_neighbor = {1:visited}
+            
+
+            for i in range(max_dist-1):
+                cur_dist = i+2 
+                next_shell = {new_neighbor for neighbor in cur_shell for new_neighbor in self.neighbors[neighbor]} - visited
+                dist_neighbor[cur_dist] = next_shell
+
+                visited = visited.union(next_shell)
+                cur_shell = next_shell
+            
+            return dist_neighbor
