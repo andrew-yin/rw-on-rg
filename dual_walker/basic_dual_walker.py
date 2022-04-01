@@ -45,8 +45,13 @@ class DualWalker(ABC):
         '''
         A breadth first search for neighbors with different distances 
         '''
-        if max_dist <= 1:
-            raise ValueError('max_length should be at least 2')
+        if max_dist < 1:
+            raise ValueError('max_length should be at least 1')
+
+        elif max_dist == 1:
+            dist_neighbor = {1:set(self.neighbors[node])}
+            return dist_neighbor
+
         else: 
             cur_shell = self.neighbors[node]
             visited = set(cur_shell)

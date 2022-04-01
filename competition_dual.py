@@ -16,12 +16,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 from graph import Graph
 from utils import largest_comp
+from scipy.stats import sem, norm
+
+class CompetitionDual():
+    def __init__(self):
+        pass
+
 
 class CompetitionDual():
     def __init__(self):
         pass
     @staticmethod
     def competition_dual(graph,dual_walker,steps, switch_walker = False, cut_proportion = 0):
+
         n=len(graph)
         dual_walker.reset()
         dual_walker.load_graph(graph)
@@ -81,6 +88,7 @@ class CompetitionDual():
 
         proportion_sum1 = np.zeros(steps+1)
         proportion_sum2 = np.zeros(steps+1)
+        final_s2 = np.zeros(k)
 
         valid_samples = 0
         threshold = largest_comp(d) * 0.85
@@ -93,11 +101,14 @@ class CompetitionDual():
             if proportion1[-1] + proportion2[-1] >= threshold:
                 proportion_sum1 += proportion1
                 proportion_sum2 += proportion2
+                final_s2[valid_samples] = proportion2[-1]
                 valid_samples += 1
+                
 
         return {'proportion_avg_1': proportion_sum1/k, 
                 'proportion_avg_2': proportion_sum2/k, 
-                'proportion_avg_total':(proportion_sum1+proportion_sum2)/k}
+                'proportion_avg_total':(proportion_sum1+proportion_sum2)/k,
+                'final_s2':final_s2}
 
     @staticmethod
     def plot_competition_dual_on_er(n, d, steps, dual_walker_class, walker_para = None, k=1,return_value =True,switch_walker = False, cut_proportion = 0):
@@ -106,12 +117,21 @@ class CompetitionDual():
         
         walk1,walk2,walk_total = results['proportion_avg_1'], results['proportion_avg_2'], results['proportion_avg_total']
 
+        final_s2 = results['final_s2']
+        final_s1 = np.ones(len(final_s2)) - final_s2
+        final_ratio = final_s1 / final_s2
+        final_ratio_mean = np.mean(final_ratio)
+        fianl_ratio_se = sem(final_ratio, axis = None, ddof = 0)
+        z_cut = norm.ppf((0.95+1)/2)
+        lower_bound, upper_bound = final_ratio_mean - z_cut * fianl_ratio_se, final_ratio_mean + z_cut * fianl_ratio_se
+        
+
         x = np.arange(1,len(walk1)+1, step = 1)
         plt.plot(x,walk1, label = 'walker1')
         plt.plot(x,walk2, label = 'walker2')
-        plt.plot(x,walk_total, label = 'total')
-        plt.title('''Proportion of Visited Vertices vs. # of Steps on ERRG with 
-        k = {:d}, n={:d}, p={:.2f}, ratio ={:.6f}'''.format(k, n, d/n, walk1[-1]/walk2[-1]))
+        plt.plot(x,walk_total, label = 'total E[S1/S2] = {}, {}% ci = {} ~ {}'.format(round(final_ratio_mean,6),  
+                                                                    95, round(lower_bound,6), round(upper_bound,6)))
+        plt.title('Proportion of Visited Vertices vs. # of Steps on ERRG with \n k = {:d}, n={:d}, p={:.5f}'.format(k, n, d/n))
         plt.xlabel("# of Steps")
         plt.ylabel("Proportion of claimed area")
         plt.legend()
@@ -129,6 +149,7 @@ class CompetitionDual():
 
         proportion_sum1 = np.zeros(steps+1)
         proportion_sum2 = np.zeros(steps+1)
+        final_s2 = np.zeros(k)
 
         valid_samples = 0
         threshold = largest_comp(d) * 0.95
@@ -141,11 +162,13 @@ class CompetitionDual():
             if proportion1[-1] + proportion2[-1] >= threshold:
                 proportion_sum1 += proportion1
                 proportion_sum2 += proportion2
+                final_s2[valid_samples] = proportion2[-1]
                 valid_samples += 1
 
         return {'proportion_avg_1': proportion_sum1/k, 
                 'proportion_avg_2': proportion_sum2/k, 
-                'proportion_avg_total':(proportion_sum1+proportion_sum2)/k}
+                'proportion_avg_total':(proportion_sum1+proportion_sum2)/k,
+                'final_s2':final_s2}
 
     @staticmethod
     def plot_competition_dual_on_d_regular(n, d, steps, dual_walker_class, walker_para = None, k=1,return_value =True, switch_walker = False, cut_proportion = 0):
@@ -154,12 +177,23 @@ class CompetitionDual():
         
         walk1,walk2,walk_total = results['proportion_avg_1'], results['proportion_avg_2'], results['proportion_avg_total']
 
+
+        final_s2 = results['final_s2']
+        final_s1 = np.ones(len(final_s2)) - final_s2
+        final_ratio = final_s1 / final_s2
+        final_ratio_mean = np.mean(final_ratio)
+        fianl_ratio_se = sem(final_ratio, axis = None, ddof = 0)
+        z_cut = norm.ppf((0.95+1)/2)
+        lower_bound, upper_bound = final_ratio_mean - z_cut * fianl_ratio_se, final_ratio_mean + z_cut * fianl_ratio_se
+
+
         x = np.arange(1,len(walk1)+1, step = 1)
         plt.plot(x,walk1, label = 'walker1')
         plt.plot(x,walk2, label = 'walker2')
-        plt.plot(x,walk_total, label = 'total')
+        plt.plot(x,walk_total, label = 'total E[S1/S2] = {}, {}% ci = {} ~ {}'.format(round(final_ratio_mean,6),  
+                                                                    95, round(lower_bound,6), round(upper_bound,6)))
         plt.title('''Proportion of Visited Vertices vs. # of Steps on d_regular with 
-        k = {:d}, n={:d}, d={:d}, ratio ={:.6f}'''.format(k, n, d, walk1[-1]/walk2[-1]))
+        k = {:d}, n={:d}, d={:d}, ratio ={}'''.format(k, n, d, round(final_ratio_mean,6)))
         plt.xlabel("# of Steps")
         plt.ylabel("Proportion of claimed area")
         plt.legend()
@@ -177,6 +211,7 @@ class CompetitionDual():
 
         proportion_sum1 = np.zeros(steps+1)
         proportion_sum2 = np.zeros(steps+1)
+        final_s2 = np.zeros(k)
 
         valid_samples = 0
         d_seq = Graph.get_rg_degree_proportion_sequence_gen(n,d_p)
@@ -188,11 +223,13 @@ class CompetitionDual():
             if proportion1[-1] + proportion2[-1] >= 0.5:
                 proportion_sum1 += proportion1
                 proportion_sum2 += proportion2
+                final_s2[valid_samples] = proportion2[-1]
                 valid_samples += 1
 
         return {'proportion_avg_1': proportion_sum1/k, 
                 'proportion_avg_2': proportion_sum2/k, 
-                'proportion_avg_total':(proportion_sum1+proportion_sum2)/k}
+                'proportion_avg_total':(proportion_sum1+proportion_sum2)/k,
+                'final_s2':final_s2}
 
     @staticmethod
     def plot_competition_dual_on_fdp(n,d_p,steps,dual_walker_class, walker_para=None, k=1, return_value = True, switch_walker = False, cut_proportion = 0):
@@ -201,12 +238,22 @@ class CompetitionDual():
         
         walk1,walk2,walk_total = results['proportion_avg_1'], results['proportion_avg_2'], results['proportion_avg_total']
 
+        final_s2 = results['final_s2']
+        final_s1 = np.ones(len(final_s2)) - final_s2
+        final_ratio = final_s1 / final_s2
+        final_ratio_mean = np.mean(final_ratio)
+        fianl_ratio_se = sem(final_ratio, axis = None, ddof = 0)
+        z_cut = norm.ppf((0.95+1)/2)
+        lower_bound, upper_bound = final_ratio_mean - z_cut * fianl_ratio_se, final_ratio_mean + z_cut * fianl_ratio_se
+
+
         x = np.arange(1,len(walk1)+1, step = 1)
         plt.plot(x,walk1, label = 'walker1')
         plt.plot(x,walk2, label = 'walker2')
-        plt.plot(x,walk_total, label = 'total')
+        plt.plot(x,walk_total, label = 'total E[S1/S2] = {}, {}% ci = {} ~ {}'.format(round(final_ratio_mean,6),  
+                                                                    95, round(lower_bound,6), round(upper_bound,6)))
         plt.title('''Proportion of Visited Vertices vs. # of Steps on fdp with 
-        k = {:d}, n={:d}, d={:d}, d_p ={}, ratio ={:.6f}'''.format(k, n, d_p, walk1[-1]/walk2[-1]))
+        k = {:d}, n={:d}, d_p ={}, ratio ={}'''.format(k, n, d_p, round(final_ratio_mean,6)))
         plt.xlabel("# of Steps")
         plt.ylabel("Proportion of claimed area")
         plt.legend()
@@ -224,6 +271,7 @@ class CompetitionDual():
 
         proportion_sum1 = np.zeros(steps+1)
         proportion_sum2 = np.zeros(steps+1)
+        final_s2 = np.zeros(k)
 
         valid_samples = 0
         d_seq = Graph.get_BA_model_graph(n,m)
@@ -235,11 +283,14 @@ class CompetitionDual():
             if proportion1[-1] + proportion2[-1] >= 0.5:
                 proportion_sum1 += proportion1
                 proportion_sum2 += proportion2
+                final_s2[valid_samples] = proportion2[-1]
                 valid_samples += 1
 
         return {'proportion_avg_1': proportion_sum1/k, 
                 'proportion_avg_2': proportion_sum2/k, 
-                'proportion_avg_total':(proportion_sum1+proportion_sum2)/k}
+                'proportion_avg_total':(proportion_sum1+proportion_sum2)/k,
+                'final_s2':final_s2}
+
 
     @staticmethod
     def plot_competition_dual_on_ba(n, m,steps,dual_walker_class, walker_para=None, k=1, return_value = True, switch_walker = False, cut_proportion = 0):
@@ -248,12 +299,22 @@ class CompetitionDual():
         
         walk1,walk2,walk_total = results['proportion_avg_1'], results['proportion_avg_2'], results['proportion_avg_total']
 
+        final_s2 = results['final_s2']
+        final_s1 = np.ones(len(final_s2)) - final_s2
+        final_ratio = final_s1 / final_s2
+        final_ratio_mean = np.mean(final_ratio)
+        fianl_ratio_se = sem(final_ratio, axis = None, ddof = 0)
+        z_cut = norm.ppf((0.95+1)/2)
+        lower_bound, upper_bound = final_ratio_mean - z_cut * fianl_ratio_se, final_ratio_mean + z_cut * fianl_ratio_se
+
+
         x = np.arange(1,len(walk1)+1, step = 1)
         plt.plot(x,walk1, label = 'walker1')
         plt.plot(x,walk2, label = 'walker2')
-        plt.plot(x,walk_total, label = 'total')
+        plt.plot(x,walk_total, label = 'total E[S1/S2] = {}, {}% ci = {} ~ {}'.format(round(final_ratio_mean,6),  
+                                                                    95, round(lower_bound,6), round(upper_bound,6)))
         plt.title('''Proportion of Visited Vertices vs. # of Steps on fdp with 
-        k = {:d}, n={:d}, m={:d}, ratio ={:.6f}'''.format(k, n, m, walk1[-1]/walk2[-1]))
+        k = {:d}, n={:d}, m={:d}, ratio ={}'''.format(k, n, m, round(final_ratio_mean,6)))
         plt.xlabel("# of Steps")
         plt.ylabel("Proportion of claimed area")
         plt.legend()
