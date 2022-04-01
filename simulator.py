@@ -218,3 +218,74 @@ class Simulator:
         plt.show()
         if return_value:
             return proportion_avg
+    
+    ### COLLABORATION
+
+    @staticmethod
+    def simulate_collab(graph, walkers, steps, calculate_prop=True):
+        for i in walkers:
+            i.reset()
+            i.load_graph(graph)
+
+        walks = [[i.cur] for i in walkers]
+        visited = set(np.array(walks).flatten())
+        proportions = np.zeros(steps+1)
+        proportions[0] = len(visited)
+
+        # Simulate walk
+        for i in range(1, steps+1):
+            proportions[i] = proportions[i-1]
+            for j in range(len(walkers)):
+                walkers[j].move()
+                walks[j].append(walkers[j].cur)
+                if walkers[j].cur not in visited:
+                    visited.add(walkers[j].cur)
+                    proportions[i] += 1
+        # Generate results
+        results = {
+            'walks': walks
+        }
+        if calculate_prop:
+            results['proportions'] = proportions/len(graph)
+        return results
+
+    @staticmethod
+    def simulate_dual_collab_on_er_rg_visited_prop(n, d, steps, walker_class1, walker_class2, walker1_params=None, walker2_params=None, k=1):
+        if not walker1_params:
+            walker1 = walker_class1()
+        else:
+            walker1 = walker_class1(walker1_params)
+        
+        if not walker2_params:
+            walker2 = walker_class2()
+        else:
+            walker2 = walker_class2(walker2_params)
+
+        proportion_sum = np.zeros(steps+1)
+        threshold = largest_comp(d) * 0.95
+        valid_samples = 0
+        while valid_samples < k:
+            graph = Graph.get_er_random_graph(n, d/n)
+            results = Simulator.simulate_collab(graph, [walker1, walker2], steps)
+            if results['proportions'][-1] >= threshold:
+                proportion_sum += results['proportions']
+                valid_samples += 1
+        proportion_avg = proportion_sum / k
+        return proportion_avg
+
+    @staticmethod
+    def simulate_triple_collab_on_er_rg_visited_prop(n, d, steps, walker_class1, walker_class2, walker_class3, k=1):
+        walker1 = walker_class1()
+        walker2 = walker_class2()
+        walker3 = walker_class3()
+        proportion_sum = np.zeros(steps+1)
+        threshold = largest_comp(d) * 0.95
+        valid_samples = 0
+        while valid_samples < k:
+            graph = Graph.get_er_random_graph(n, d/n)
+            results = Simulator.simulate_collab(graph, [walker1, walker2, walker3], steps)
+            if results['proportions'][-1] >= threshold:
+                proportion_sum += results['proportions']
+                valid_samples += 1
+        proportion_avg = proportion_sum / k
+        return proportion_avg
