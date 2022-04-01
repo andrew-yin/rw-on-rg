@@ -84,7 +84,7 @@ class Simulator:
         threshold = largest_comp(d) * 0.95
         valid_samples = 0
         while valid_samples < k:
-            graph = Graph.get_k_regular_random_graph(n, d)
+            graph = Graph.get_k_regular_random_graph(d, n)
             results = Simulator.simulate_walk(graph, walker, steps)
             if results['proportions'][-1] >= threshold:
                 proportion_sum += results['proportions']
@@ -284,6 +284,30 @@ class Simulator:
         while valid_samples < k:
             graph = Graph.get_er_random_graph(n, d/n)
             results = Simulator.simulate_collab(graph, [walker1, walker2, walker3], steps)
+            if results['proportions'][-1] >= threshold:
+                proportion_sum += results['proportions']
+                valid_samples += 1
+        proportion_avg = proportion_sum / k
+        return proportion_avg
+
+    @staticmethod
+    def simulate_dual_collab_on_k_reg_visited_prop(n, d, steps, walker_class1, walker_class2, walker1_params=None, walker2_params=None, k=1):
+        if not walker1_params:
+            walker1 = walker_class1()
+        else:
+            walker1 = walker_class1(walker1_params)
+        
+        if not walker2_params:
+            walker2 = walker_class2()
+        else:
+            walker2 = walker_class2(walker2_params)
+
+        proportion_sum = np.zeros(steps+1)
+        threshold = largest_comp(d) * 0.95
+        valid_samples = 0
+        while valid_samples < k:
+            graph = Graph.get_k_regular_random_graph(d, n)
+            results = Simulator.simulate_collab(graph, [walker1, walker2], steps)
             if results['proportions'][-1] >= threshold:
                 proportion_sum += results['proportions']
                 valid_samples += 1
