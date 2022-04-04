@@ -218,8 +218,10 @@ class Simulator:
         plt.show()
         if return_value:
             return proportion_avg
-    
-    ### COLLABORATION
+
+    ############################################ 
+    ###           COLLABORATION              ###
+    ###########################################
 
     @staticmethod
     def simulate_collab(graph, walkers, steps, calculate_prop=True):
